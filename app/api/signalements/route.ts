@@ -9,6 +9,7 @@ type SignalementPayload = {
   contact_signaleur?: unknown;
   latitude?: unknown;
   longitude?: unknown;
+  photo_urls?: unknown;
 };
 
 export async function POST(request: Request) {
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
     contact_signaleur,
     latitude,
     longitude,
+    photo_urls,
   } = payload;
 
   if (
@@ -39,6 +41,20 @@ export async function POST(request: Request) {
   ) {
     return NextResponse.json(
       { error: "Les champs type_pollution, description et nom_zone sont requis." },
+      { status: 400 },
+    );
+  }
+
+  if (
+    photo_urls !== undefined &&
+    (!Array.isArray(photo_urls) ||
+      !photo_urls.every(
+        (photoUrl): photoUrl is string =>
+          typeof photoUrl === "string" && photoUrl.trim().length > 0,
+      ))
+  ) {
+    return NextResponse.json(
+      { error: "Le champ photo_urls doit être un tableau de chaînes de caractères." },
       { status: 400 },
     );
   }
@@ -86,6 +102,9 @@ export async function POST(request: Request) {
         typeof contact_signaleur === "string" && contact_signaleur.trim()
           ? contact_signaleur.trim()
           : null,
+      photo_urls: Array.isArray(photo_urls)
+        ? photo_urls.map((photoUrl) => photoUrl.trim())
+        : [],
       localisation,
     })
     .select("id")

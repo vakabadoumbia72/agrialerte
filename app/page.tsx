@@ -2,6 +2,8 @@
 
 import { FormEvent, useRef, useState } from "react";
 
+import { supabase } from "@/lib/supabase";
+
 const pollutionTypes = [
   "Eau trouble",
   "Sol décoloré",
@@ -49,6 +51,27 @@ export default function Home() {
     setFormStatus("");
 
     try {
+      const photoFiles = formData
+        .getAll("photos")
+        .filter((value): value is File => value instanceof File && value.size > 0);
+      const photoUrls = await Promise.all(
+        photoFiles.map(async (file) => {
+          const filePath = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+          const { error: uploadError } = await supabase.storage
+            .from("signalements")
+            .upload(filePath, file);
+
+          if (uploadError) {
+            throw uploadError;
+          }
+
+          const { data } = supabase.storage
+            .from("signalements")
+            .getPublicUrl(filePath);
+          return data.publicUrl;
+        }),
+      );
+
       const response = await fetch("/api/signalements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -59,6 +82,7 @@ export default function Home() {
           contact_signaleur: formData.get("contact_signaleur"),
           latitude: latitude ? Number(latitude) : null,
           longitude: longitude ? Number(longitude) : null,
+          photo_urls: photoUrls,
         }),
       });
 
@@ -168,6 +192,20 @@ export default function Home() {
               name="contact_signaleur"
               type="tel"
               className="w-full rounded-lg border border-green-900 bg-black px-4 py-3 text-green-200 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="photos" className="mb-2 block font-medium">
+              Photos <span className="text-green-700">(optionnel)</span>
+            </label>
+            <input
+              id="photos"
+              name="photos"
+              type="file"
+              accept="image/*"
+              multiple
+              className="w-full rounded-lg border border-green-900 bg-black px-4 py-3 text-green-200 outline-none file:mr-4 file:rounded file:border-0 file:bg-green-900 file:px-3 file:py-2 file:text-green-100 focus:border-green-400 focus:ring-1 focus:ring-green-400"
             />
           </div>
 
