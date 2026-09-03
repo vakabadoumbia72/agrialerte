@@ -20,16 +20,29 @@ export default function LoginPage() {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-    if (error) {
-      setErrorMessage("Email ou mot de passe incorrect.");
+      if (error) {
+        setErrorMessage(
+          error.code === "email_not_confirmed"
+            ? "Votre adresse email n’est pas confirmée. Vérifiez votre boîte de réception Supabase ou confirmez l’utilisateur dans Authentication > Users."
+            : "Email ou mot de passe incorrect.",
+        );
+        return;
+      }
+
+      router.push("/admin");
+      router.refresh();
+    } catch (error) {
+      console.error("Erreur de connexion Supabase.", error);
+      setErrorMessage("Le service de connexion est temporairement indisponible.");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    router.push("/admin");
-    router.refresh();
   };
 
   return (
