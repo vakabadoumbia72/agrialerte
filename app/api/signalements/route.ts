@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { supabase } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type SignalementPayload = {
   type_pollution?: unknown;
@@ -101,6 +101,7 @@ export async function POST(request: Request) {
   let data: { id: string | number } | null = null;
   let error: { message: string; code?: string } | null = null;
   try {
+    const supabase = await createSupabaseServerClient();
     const result = await supabase
       .from("signalements")
       .insert({

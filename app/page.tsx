@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { FormEvent, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 
 const pollutionTypes = ["Eau trouble", "Sol décoloré", "Poissons morts", "Récolte abîmée", "Autre"] as const;
 
