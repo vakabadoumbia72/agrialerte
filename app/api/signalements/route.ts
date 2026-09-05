@@ -16,7 +16,11 @@ export async function POST(request: Request) {
   let payload: SignalementPayload;
 
   try {
-    payload = (await request.json()) as SignalementPayload;
+    const body: unknown = await request.json();
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Corps JSON invalide." }, { status: 400 });
+    }
+    payload = body as SignalementPayload;
   } catch {
     return NextResponse.json({ error: "Corps JSON invalide." }, { status: 400 });
   }
@@ -59,38 +63,48 @@ export async function POST(request: Request) {
     );
   }
 
-  const hasLatitude = latitude !== null && latitude !== undefined && latitude !== "";
-  const hasLongitude =
-    longitude !== null && longitude !== undefined && longitude !== "";
 
-  if (hasLatitude !== hasLongitude) {
+    (latitude === null || latitude === undefined || latitude === "") &&
+    (longitude === null || longitude === undefined || longitude === "")
+  ) {
+    return NextResponse.json(
+      { error: "La localisation est requise. Utilisez le bouton de géolocalisation." },
+      { status: 400 },
+    );
+  }
+
+  if (
+    latitude === null ||
+    latitude === undefined ||
+    latitude === "" ||
+    longitude === null ||
+    longitude === undefined ||
+    longitude === ""
+  ) {
     return NextResponse.json(
       { error: "La latitude et la longitude doivent être fournies ensemble." },
       { status: 400 },
     );
   }
 
-  let localisation: string | null = null;
-  if (hasLatitude && hasLongitude) {
-    const numericLatitude = Number(latitude);
-    const numericLongitude = Number(longitude);
+  const numericLatitude = Number(latitude);
+  const numericLongitude = Number(longitude);
 
-    if (
-      !Number.isFinite(numericLatitude) ||
-      !Number.isFinite(numericLongitude) ||
-      numericLatitude < -90 ||
-      numericLatitude > 90 ||
-      numericLongitude < -180 ||
-      numericLongitude > 180
-    ) {
-      return NextResponse.json(
-        { error: "Coordonnées géographiques invalides." },
-        { status: 400 },
-      );
-    }
-
-    localisation = `SRID=4326;POINT(${numericLongitude} ${numericLatitude})`;
+  if (
+    !Number.isFinite(numericLatitude) ||
+    !Number.isFinite(numericLongitude) ||
+    numericLatitude < -90 ||
+    numericLatitude > 90 ||
+    numericLongitude < -180 ||
+    numericLongitude > 180
+  ) {
+    return NextResponse.json(
+      { error: "Coordonnées GPS invalides." },
+      { status: 400 },
+    );
   }
+
+  const localisation = `SRID=4326;POINT(${numericLongitude} ${numericLatitude})`;
 
   const { data, error } = await supabase
     .from("signalements")
