@@ -5,7 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useMemo, useState } from "react";
 import Map, { Layer, Marker, NavigationControl, Source } from "react-map-gl/mapbox";
 
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 
 type Signalement = {
   id: string | number;
