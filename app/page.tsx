@@ -5,6 +5,7 @@ import { FormEvent, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 
 const pollutionTypes = ["Eau trouble", "Sol décoloré", "Poissons morts", "Récolte abîmée", "Autre"] as const;
+const signalementsBucket = "signalements";
 
 function ArrowUpRight() {
   return <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 16 16" fill="none"><path d="M3 13 13 3M5 3h8v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
@@ -66,9 +67,11 @@ export default function Home() {
       const photoFiles = formData.getAll("photos").filter((value): value is File => value instanceof File && value.size > 0);
       const photoUrls = await Promise.all(photoFiles.map(async (file) => {
         const filePath = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-        const { error: uploadError } = await supabase.storage.from("signalements").upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from(signalementsBucket)
+          .upload(filePath, file);
         if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from("signalements").getPublicUrl(filePath);
+        const { data } = supabase.storage.from(signalementsBucket).getPublicUrl(filePath);
         return data.publicUrl;
       }));
       const response = await fetch("/api/signalements", {

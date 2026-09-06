@@ -12,6 +12,20 @@ type SignalementPayload = {
   photo_urls?: unknown;
 };
 
+type Signalement = {
+  id: number;
+};
+
+function isPhotoUrlArray(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (photoUrl): photoUrl is string =>
+        typeof photoUrl === "string" && photoUrl.trim().length > 0,
+    )
+  );
+}
+
 export async function POST(request: Request) {
   let payload: SignalementPayload;
 
@@ -51,13 +65,7 @@ export async function POST(request: Request) {
   }
 
   const photoUrls = photo_urls === undefined || photo_urls === null ? [] : photo_urls;
-  if (
-    !Array.isArray(photoUrls) ||
-    !photoUrls.every(
-      (photoUrl): photoUrl is string =>
-        typeof photoUrl === "string" && photoUrl.trim().length > 0,
-    )
-  ) {
+  if (!isPhotoUrlArray(photoUrls)) {
     return NextResponse.json(
       { error: "Le champ photo_urls doit être un tableau de chaînes de caractères." },
       { status: 400 },
@@ -98,7 +106,7 @@ export async function POST(request: Request) {
     localisation = `SRID=4326;POINT(${numericLongitude} ${numericLatitude})`;
   }
 
-  let data: { id: string | number } | null = null;
+  let data: Signalement | null = null;
   let error: { message: string; code?: string } | null = null;
   try {
     const supabase = await createSupabaseServerClient();
