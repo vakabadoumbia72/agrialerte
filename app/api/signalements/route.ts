@@ -111,7 +111,7 @@ export async function POST(request: Request) {
   try {
     const supabase = await createSupabaseServerClient();
     const result = await supabase
-      .from("signalements")
+      .from("signalisations")
       .insert({
         type_pollution: type_pollution.trim(),
         description: description.trim(),
@@ -141,7 +141,7 @@ export async function POST(request: Request) {
       message: error.message,
     });
     return NextResponse.json(
-      { error: "Impossible d'enregistrer le signalement. Vérifiez les politiques RLS de la table signalements." },
+      { error: "Impossible d'enregistrer le signalement. Vérifiez les politiques RLS de la table signalisations." },
       { status: 500 },
     );
   }

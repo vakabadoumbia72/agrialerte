@@ -53,7 +53,7 @@ export default function DashboardMap() {
   useEffect(() => {
     const loadSignalements = async () => {
       const { data, error } = await supabase
-        .from("signalements")
+        .from("signalisations")
         .select("id, type_pollution, description, nom_zone, localisation");
 
       if (error) {
