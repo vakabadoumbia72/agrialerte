@@ -13,7 +13,7 @@ type SignalementPayload = {
 };
 
 type Signalement = {
-  id: number;
+  id: number | string;
 };
 
 function isPhotoUrlArray(value: unknown): value is string[] {
